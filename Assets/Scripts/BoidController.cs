@@ -1,12 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class BoidController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private GameObject boidPrefab;
-    [SerializeField] private Transform boidParent;
     [SerializeField] private Transform boundingCenter;
 
     [Header("Settings")]
@@ -23,8 +21,7 @@ public class BoidController : MonoBehaviour
 
     private Flock[] flocks;
 
-    [ContextMenu("Spawn")]
-    public Boid[] SpawnBoids(Vector3 spawnOffset, Transform flockParent)
+    private Boid[] SpawnBoids(Vector3 spawnOffset, Transform flockParent)
     {
         List<Boid> newBoids = new();
 
@@ -43,15 +40,6 @@ public class BoidController : MonoBehaviour
         return newBoids.ToArray();
     }
 
-    private void ClearBoids()
-    {
-        for (int i = 0; i < boidParent.transform.childCount; i++)
-        {
-            Transform child = boidParent.transform.GetChild(i);
-            Destroy(child.gameObject);
-        }
-    }
-
     private void SpawnFlocks()
     {
         List<Flock> newFlocks = new();
@@ -67,14 +55,16 @@ public class BoidController : MonoBehaviour
 
     private void Awake()
     {
-        ClearBoids();
         SpawnFlocks();
     }
 
     private void Update()
     {
-        //UpdateBoid();
+        UpdateFlocks();
+    }
 
+    private void UpdateFlocks()
+    {
         for (int i = 0; i < flocks.Length; i++)
         {
             Flock flock = flocks[i];
@@ -95,7 +85,7 @@ public class BoidController : MonoBehaviour
         }
     }
 
-    public void ApplyCohesionRule(Boid thisBoid, Vector3 averageBoidPosition)
+    private void ApplyCohesionRule(Boid thisBoid, Vector3 averageBoidPosition)
     {
         Vector3 cohesionDirection = (averageBoidPosition - thisBoid.position).normalized;
 
@@ -150,60 +140,5 @@ public class BoidController : MonoBehaviour
     {
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(boundingCenter.position, boundingRadius);
-    }
-}
-
-public class Boid
-{
-    public GameObject gameObject;
-    public Vector3 direction;
-    public Vector3 position { get { return gameObject.transform.position; } }
-
-    public Boid(GameObject gameObject)
-    {
-        this.gameObject = gameObject;
-        direction = Vector3.zero;
-    }
-}
-
-public class Flock
-{
-    public Boid[] boids;
-    public Vector3 averageBoidPosition;
-    public Vector3 averageBoidDirection;
-
-    public Flock(Boid[] boids)
-    {
-        this.boids = boids;
-    }
-
-    public void CalculateAverageBoidPosition()
-    {
-        Vector3 totalPosition = Vector3.zero;
-        for (int i = 0; i < boids.Length; i++)
-        {
-            Boid boid = boids[i];
-            totalPosition += boid.position;
-        }
-
-        averageBoidPosition = (totalPosition / boids.Length).normalized;
-    }
-
-    public void CalculateAverageBoidDirection()
-    {
-        Vector3 totalVelocity = Vector3.zero;
-        for (int i = 0; i < boids.Length; i++)
-        {
-            Boid boid = boids[i];
-            totalVelocity += boid.direction.normalized;
-        }
-
-        averageBoidDirection = (totalVelocity / boids.Length).normalized;
-    }
-
-    public void OnUpdate()
-    {
-        CalculateAverageBoidPosition();
-        CalculateAverageBoidDirection();
     }
 }
